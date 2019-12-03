@@ -1,18 +1,18 @@
 #!/bin/bash
-if [ -z $QT_STATIC ]; then 
-    echo "QT_STATIC is not set. Please set it to the base directory of a statically compiled Qt"; 
-    exit 1; 
+if [ -z $QT_STATIC ]; then
+    echo "QT_STATIC is not set. Please set it to the base directory of a statically compiled Qt";
+    exit 1;
 fi
 
 if [ -z $APP_VERSION ]; then echo "APP_VERSION is not set"; exit 1; fi
-if [ -z $PREV_VERSION ]; then echo "PREV_VERSION is not set"; exit 1; fi
+# if [ -z $PREV_VERSION ]; then echo "PREV_VERSION is not set"; exit 1; fi
 
 echo -n "Version files.........."
 # Replace the version number in the .pro file so it gets picked up everywhere
-sed -i "s/${PREV_VERSION}/${APP_VERSION}/g" zecwallet-lite.pro > /dev/null
+# sed -i "s/${PREV_VERSION}/${APP_VERSION}/g" zecwallet-lite.pro > /dev/null
 
 # Also update it in the README.md
-sed -i "s/${PREV_VERSION}/${APP_VERSION}/g" README.md > /dev/null
+# sed -i "s/${PREV_VERSION}/${APP_VERSION}/g" README.md > /dev/null
 echo "[OK]"
 
 echo -n "Cleaning..............."
@@ -39,11 +39,11 @@ echo "[OK]"
 
 
 # Test for Qt
-echo -n "Static link............"
-if [[ $(ldd zecwallet-lite | grep -i "Qt") ]]; then
-    echo "FOUND QT; ABORT"; 
-    exit 1
-fi
+# echo -n "Static link............"
+# if [[ $(ldd zecwallet-lite | grep -i "Qt") ]]; then
+#     echo "FOUND QT; ABORT";
+#     exit 1
+# fi
 echo "[OK]"
 
 
@@ -56,7 +56,7 @@ cp README.md                      bin/zecwallet-lite-v$APP_VERSION > /dev/null
 cp LICENSE                        bin/zecwallet-lite-v$APP_VERSION > /dev/null
 
 cd bin && tar czf linux-zecwallet-lite-v$APP_VERSION.tar.gz zecwallet-lite-v$APP_VERSION/ > /dev/null
-cd .. 
+cd ..
 
 mkdir artifacts >/dev/null 2>&1
 cp bin/linux-zecwallet-lite-v$APP_VERSION.tar.gz ./artifacts/linux-binaries-zecwallet-lite-v$APP_VERSION.tar.gz
@@ -66,12 +66,12 @@ echo "[OK]"
 if [ -f artifacts/linux-binaries-zecwallet-lite-v$APP_VERSION.tar.gz ] ; then
     echo -n "Package contents......."
     # Test if the package is built OK
-    if tar tf "artifacts/linux-binaries-zecwallet-lite-v$APP_VERSION.tar.gz" | wc -l | grep -q "4"; then 
+    if tar tf "artifacts/linux-binaries-zecwallet-lite-v$APP_VERSION.tar.gz" | wc -l | grep -q "4"; then
         echo "[OK]"
     else
         echo "[ERROR]"
         exit 1
-    fi    
+    fi
 else
     echo "[ERROR]"
     exit 1
@@ -102,36 +102,36 @@ echo "[OK]"
 echo ""
 echo "[Windows]"
 
-if [ -z $MXE_PATH ]; then 
+if [ -z $MXE_PATH ]; then
     echo "MXE_PATH is not set. Set it to ~/github/mxe/usr/bin if you want to build Windows"
     echo "Not building Windows"
-    exit 0; 
+    exit 0;
 fi
 
 export PATH=$MXE_PATH:$PATH
 
 echo -n "Configuring............"
 make clean  > /dev/null
-#rm -f zec-qt-wallet-mingw.pro
+rm -f zecwallet-lite-mingw.pro
 rm -rf release/
 #Mingw seems to have trouble with precompiled headers, so strip that option from the .pro file
-#cat zec-qt-wallet.pro | sed "s/precompile_header/release/g" | sed "s/PRECOMPILED_HEADER.*//g" > zec-qt-wallet-mingw.pro
+cat zecwallet-lite.pro | sed "s/precompile_header/release/g" | sed "s/PRECOMPILED_HEADER.*//g" > zecwallet-lite-mingw.pro
 echo "[OK]"
 
 
 echo -n "Building..............."
 # Build the lib first
 cd lib && make winrelease && cd ..
-x86_64-w64-mingw32.static-qmake-qt5 zecwallet-lite.pro CONFIG+=release > /dev/null
-make -j32 > /dev/null
+x86_64-w64-mingw32.static-qmake-qt5 zecwallet-lite-mingw.pro CONFIG+=release > /dev/null
+make -j4 > /dev/null
 echo "[OK]"
 
 
 echo -n "Packaging.............."
-mkdir release/zecwallet-lite-v$APP_VERSION  
-cp release/zecwallet-lite.exe          release/zecwallet-lite-v$APP_VERSION 
-cp README.md                          release/zecwallet-lite-v$APP_VERSION 
-cp LICENSE                            release/zecwallet-lite-v$APP_VERSION 
+mkdir release/zecwallet-lite-v$APP_VERSION
+cp release/zecwallet-lite.exe          release/zecwallet-lite-v$APP_VERSION
+cp README.md                          release/zecwallet-lite-v$APP_VERSION
+cp LICENSE                            release/zecwallet-lite-v$APP_VERSION
 cd release && zip -r Windows-binaries-zecwallet-lite-v$APP_VERSION.zip zecwallet-lite-v$APP_VERSION/ > /dev/null
 cd ..
 
@@ -141,7 +141,7 @@ echo "[OK]"
 
 if [ -f artifacts/Windows-binaries-zecwallet-lite-v$APP_VERSION.zip ] ; then
     echo -n "Package contents......."
-    if unzip -l "artifacts/Windows-binaries-zecwallet-lite-v$APP_VERSION.zip" | wc -l | grep -q "9"; then 
+    if unzip -l "artifacts/Windows-binaries-zecwallet-lite-v$APP_VERSION.zip" | wc -l | grep -q "9"; then
         echo "[OK]"
     else
         echo "[ERROR]"

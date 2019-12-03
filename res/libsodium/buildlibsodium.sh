@@ -19,6 +19,7 @@ fi
 
 # Now build it
 cd libsodium-1.0.16
+chmod +x configure
 LIBS="" ./configure
 make clean
 if [[ "$OSTYPE" == "darwin"* ]]; then
