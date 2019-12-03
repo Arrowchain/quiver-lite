@@ -30,15 +30,15 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-if [ -z $QT_PATH ]; then 
-    echo "QT_PATH is not set. Please set it to the base directory of Qt"; 
-    exit 1; 
+if [ -z $QT_PATH ]; then
+    echo "QT_PATH is not set. Please set it to the base directory of Qt";
+    exit 1;
 fi
 
-if [ -z $CERTIFICATE ]; then 
-    echo "CERTIFICATE is not set. Please set it the name of the MacOS developer certificate to sign the binary with"; 
-    exit 1; 
-fi
+# if [ -z $CERTIFICATE ]; then
+#     echo "CERTIFICATE is not set. Please set it the name of the MacOS developer certificate to sign the binary with";
+#     exit 1;
+# fi
 
 if [ -z $APP_VERSION ]; then
     echo "APP_VERSION is not set. Please set it to the current release version of the app";
@@ -55,8 +55,8 @@ export PATH=$PATH:/usr/local/bin
 #Clean
 echo -n "Cleaning..............."
 make distclean >/dev/null 2>&1
-rm -f artifacts/macOS-zecwallet-v$APP_VERSION.dmg 
-rm -rf Zecwallet-Lite.app/ zecwallet-lite.app/
+rm -f artifacts/macOS-zecwallet-v$APP_VERSION.dmg
+rm -rf quiver-lite.app/ quiver-lite.app/
 echo "[OK]"
 
 
@@ -74,25 +74,25 @@ echo "[OK]"
 #Qt deploy
 echo -n "Deploying.............."
 mkdir artifacts >/dev/null 2>&1
-rm -f artifcats/zecwallet-lite.dmg >/dev/null 2>&1
+rm -f artifcats/quiver-lite.dmg >/dev/null 2>&1
 rm -f artifacts/rw* >/dev/null 2>&1
-$QT_PATH/bin/macdeployqt zecwallet-lite.app 
-codesign --deep --force --verify --verbose -s "$CERTIFICATE" --options runtime --timestamp zecwallet-lite.app/
+$QT_PATH/bin/macdeployqt quiver-lite.app
+# codesign --deep --force --verify --verbose -s "$CERTIFICATE" --options runtime --timestamp quiver-lite.app/
 echo "[OK]"
 
 
 # Code Signing Note:
 # On MacOS, you still need to run these 3 commands:
-# xcrun altool --notarize-app -t osx -f macOS-zecwallet-lite-v1.0.0.dmg --primary-bundle-id="com.yourcompany.zecwallet-lite" -u "apple developer id@email.com" -p "one time password" 
-# xcrun altool --notarization-info <output from pervious command> -u "apple developer id@email.com" -p "one time password" 
+# xcrun altool --notarize-app -t osx -f macOS-zecwallet-lite-v1.0.0.dmg --primary-bundle-id="com.yourcompany.zecwallet-lite" -u "apple developer id@email.com" -p "one time password"
+# xcrun altool --notarization-info <output from pervious command> -u "apple developer id@email.com" -p "one time password"
 #...wait for the notarization to finish...
 # xcrun stapler staple macOS-zecwallet-lite-v1.0.0.dmg
 
 echo -n "Building dmg..........."
-mv zecwallet-lite.app Zecwallet-Lite.app
-create-dmg --volname "Zecwallet-Lite-v$APP_VERSION" --volicon "res/logo.icns" --window-pos 200 120 --icon "Zecwallet-Lite.app" 200 190  --app-drop-link 600 185 --hide-extension "Zecwallet-Lite.app"  --window-size 800 400 --hdiutil-quiet --background res/dmgbg.png  artifacts/macOS-zecwallet-lite-v$APP_VERSION.dmg Zecwallet-Lite.app >/dev/null 2>&1
+# mv quiver-lite.app quiver-lite.app
+create-dmg --volname "quiver-lite-v$APP_VERSION" --volicon "res/logo.icns" --window-pos 200 120 --icon "quiver-lite.app" 200 190  --app-drop-link 600 185 --hide-extension "quiver-lite.app"  --window-size 800 400 --hdiutil-quiet --background res/dmgbg.png  artifacts/macOS-quiver-lite-v$APP_VERSION.dmg quiver-lite.app >/dev/null 2>&1
 
-if [ ! -f artifacts/macOS-zecwallet-lite-v$APP_VERSION.dmg ]; then
+if [ ! -f artifacts/macOS-quiver-lite-v$APP_VERSION.dmg ]; then
     echo "[ERROR]"
     exit 1
 fi

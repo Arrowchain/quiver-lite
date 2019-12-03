@@ -298,6 +298,13 @@ void Controller::updateUIBalances() {
     ui->balTransparent->setText(balT.toDecimalZECString());
     ui->balTotal      ->setText(balTotal.toDecimalZECString());
 
+//    if (balT == 0) {
+        ui->balTransparent->setVisible(false);
+        ui->transparentLbl->setVisible(false);
+        ui->totalLbl->setVisible(false);
+        ui->balTotal->setVisible(false);
+//    }
+
     ui->balSheilded   ->setToolTip(balZ.toDecimalUSDString());
     ui->balVerified   ->setToolTip(balVerified.toDecimalUSDString());
     ui->balTransparent->setToolTip(balT.toDecimalUSDString());

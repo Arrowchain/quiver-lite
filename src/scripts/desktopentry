@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Zecwallet-Lite
-Comment=Lightclient UI wallet for Zcash
+Name=Quiver-Lite
+Comment=Lightclient UI wallet for Arrow
 GenericName=Wallet
-Exec=/usr/local/bin/zecwallet-lite %u
+Exec=/usr/local/bin/quiver-lite %u
 Icon=zecwallet-lite.xpm
 Type=Application
 StartupNotify=true
@@ -10,4 +10,3 @@ StartupWMClass=zecwallet-lite
 Categories=Utility;
 MimeType=x-scheme-handler/zcash;
 Keywords=zecwallet;
-

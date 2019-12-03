@@ -13,7 +13,7 @@ PRECOMPILED_HEADER = src/precompiled.h
 QT += widgets
 QT += websockets
 
-TARGET = zecwallet-lite
+TARGET = quiver-lite
 
 TEMPLATE = app
 
@@ -90,7 +90,7 @@ HEADERS += \
     src/controller.h \
     src/liteinterface.h \
     src/camount.h \
-    lib/zecwalletlitelib.h 
+    lib/zecwalletlitelib.h
 
 FORMS += \
     src/encryption.ui \
@@ -104,7 +104,7 @@ FORMS += \
     src/about.ui \
     src/confirm.ui \
     src/privkey.ui \
-    src/memodialog.ui \ 
+    src/memodialog.ui \
     src/viewalladdresses.ui \
     src/connection.ui \
     src/addressbook.ui \
@@ -113,7 +113,7 @@ FORMS += \
     src/recurringdialog.ui \
     src/newrecurring.ui \
     src/requestdialog.ui \
-    src/recurringmultiple.ui 
+    src/recurringmultiple.ui
 
 
 TRANSLATIONS = res/zec_qt_wallet_es.ts \
@@ -122,7 +122,7 @@ TRANSLATIONS = res/zec_qt_wallet_es.ts \
                res/zec_qt_wallet_pt.ts \
                res/zec_qt_wallet_it.ts \
                res/zec_qt_wallet_zh.ts \
-               res/zec_qt_wallet_tr.ts 
+               res/zec_qt_wallet_tr.ts
 
 include(singleapplication/singleapplication.pri)
 DEFINES += QAPPLICATION_CLASS=QApplication
@@ -144,7 +144,7 @@ libsodium.commands = res/libsodium/buildlibsodium.sh
 unix:        librust.target   = $$PWD/lib/target/release/libzecwalletlite.a
 else:win32:  librust.target   = $$PWD/lib/target/x86_64-pc-windows-gnu/release/zecwalletlite.lib
 
-unix:        librust.commands = $(MAKE) -C $$PWD/lib 
+unix:        librust.commands = $(MAKE) -C $$PWD/lib
 else:win32:  librust.commands = $(MAKE) -C $$PWD/lib winrelease
 
 librust.depends = lib/Cargo.toml lib/src/lib.rs
