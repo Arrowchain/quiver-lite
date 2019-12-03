@@ -48,25 +48,25 @@ echo "[OK]"
 
 
 echo -n "Packaging.............."
-mkdir bin/zecwallet-lite-v$APP_VERSION > /dev/null
-strip zecwallet-lite
+mkdir bin/quiver-lite-v$APP_VERSION > /dev/null
+strip quiver-lite
 
-cp zecwallet-lite                 bin/zecwallet-lite-v$APP_VERSION > /dev/null
-cp README.md                      bin/zecwallet-lite-v$APP_VERSION > /dev/null
-cp LICENSE                        bin/zecwallet-lite-v$APP_VERSION > /dev/null
+cp quiver-lite                 bin/quiver-lite-v$APP_VERSION > /dev/null
+cp README.md                      bin/quiver-lite-v$APP_VERSION > /dev/null
+cp LICENSE                        bin/quiver-lite-v$APP_VERSION > /dev/null
 
-cd bin && tar czf linux-zecwallet-lite-v$APP_VERSION.tar.gz zecwallet-lite-v$APP_VERSION/ > /dev/null
+cd bin && tar czf linux-quiver-lite-v$APP_VERSION.tar.gz quiver-lite-v$APP_VERSION/ > /dev/null
 cd ..
 
 mkdir artifacts >/dev/null 2>&1
-cp bin/linux-zecwallet-lite-v$APP_VERSION.tar.gz ./artifacts/linux-binaries-zecwallet-lite-v$APP_VERSION.tar.gz
+cp bin/linux-quiver-lite-v$APP_VERSION.tar.gz ./artifacts/linux-binaries-quiver-lite-v$APP_VERSION.tar.gz
 echo "[OK]"
 
 
-if [ -f artifacts/linux-binaries-zecwallet-lite-v$APP_VERSION.tar.gz ] ; then
+if [ -f artifacts/linux-binaries-quiver-lite-v$APP_VERSION.tar.gz ] ; then
     echo -n "Package contents......."
     # Test if the package is built OK
-    if tar tf "artifacts/linux-binaries-zecwallet-lite-v$APP_VERSION.tar.gz" | wc -l | grep -q "4"; then
+    if tar tf "artifacts/linux-binaries-quiver-lite-v$APP_VERSION.tar.gz" | wc -l | grep -q "4"; then
         echo "[OK]"
     else
         echo "[ERROR]"
@@ -78,23 +78,23 @@ else
 fi
 
 echo -n "Building deb..........."
-debdir=bin/deb/zecwallet-lite-v$APP_VERSION
+debdir=bin/deb/quiver-lite-v$APP_VERSION
 mkdir -p $debdir > /dev/null
 mkdir    $debdir/DEBIAN
 mkdir -p $debdir/usr/local/bin
 
 cat src/scripts/control | sed "s/RELEASE_VERSION/$APP_VERSION/g" > $debdir/DEBIAN/control
 
-cp zecwallet-lite                   $debdir/usr/local/bin/
+cp quiver-lite                   $debdir/usr/local/bin/
 
 mkdir -p $debdir/usr/share/pixmaps/
 cp res/zecwallet-lite.xpm           $debdir/usr/share/pixmaps/
 
 mkdir -p $debdir/usr/share/applications
-cp src/scripts/desktopentry    $debdir/usr/share/applications/zecwallet-lite.desktop
+cp src/scripts/desktopentry    $debdir/usr/share/applications/quiver-lite.desktop
 
 dpkg-deb --build $debdir >/dev/null
-cp $debdir.deb                 artifacts/linux-deb-zecwallet-lite-v$APP_VERSION.deb
+cp $debdir.deb                 artifacts/linux-deb-quiver-lite-v$APP_VERSION.deb
 echo "[OK]"
 
 
@@ -128,20 +128,20 @@ echo "[OK]"
 
 
 echo -n "Packaging.............."
-mkdir release/zecwallet-lite-v$APP_VERSION
-cp release/zecwallet-lite.exe          release/zecwallet-lite-v$APP_VERSION
-cp README.md                          release/zecwallet-lite-v$APP_VERSION
-cp LICENSE                            release/zecwallet-lite-v$APP_VERSION
-cd release && zip -r Windows-binaries-zecwallet-lite-v$APP_VERSION.zip zecwallet-lite-v$APP_VERSION/ > /dev/null
+mkdir release/quiver-lite-v$APP_VERSION
+cp release/quiver-lite.exe          release/quiver-lite-v$APP_VERSION
+cp README.md                          release/quiver-lite-v$APP_VERSION
+cp LICENSE                            release/quiver-lite-v$APP_VERSION
+cd release && zip -r Windows-binaries-quiver-lite-v$APP_VERSION.zip quiver-lite-v$APP_VERSION/ > /dev/null
 cd ..
 
 mkdir artifacts >/dev/null 2>&1
-cp release/Windows-binaries-zecwallet-lite-v$APP_VERSION.zip ./artifacts/
+cp release/Windows-binaries-quiver-lite-v$APP_VERSION.zip ./artifacts/
 echo "[OK]"
 
-if [ -f artifacts/Windows-binaries-zecwallet-lite-v$APP_VERSION.zip ] ; then
+if [ -f artifacts/Windows-binaries-quiver-lite-v$APP_VERSION.zip ] ; then
     echo -n "Package contents......."
-    if unzip -l "artifacts/Windows-binaries-zecwallet-lite-v$APP_VERSION.zip" | wc -l | grep -q "9"; then
+    if unzip -l "artifacts/Windows-binaries-quiver-lite-v$APP_VERSION.zip" | wc -l | grep -q "9"; then
         echo "[OK]"
     else
         echo "[ERROR]"
