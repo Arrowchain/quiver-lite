@@ -160,9 +160,9 @@ QString Settings::getDefaultServer() {
 void Settings::openAddressInExplorer(QString address) {
     QString url;
     if (Settings::getInstance()->isTestnet()) {
-        url = "https://chain.so/address/ZECTEST/" + address;
+        url = "https://explorer-test.arrowchain.io/#/address/" + address;
     } else {
-        url = "https://zcha.in/accounts/" + address;
+        url = "https://explorer.arrowchain.io/#/address/" + address;
     }
     QDesktopServices::openUrl(QUrl(url));
 }
@@ -170,10 +170,10 @@ void Settings::openAddressInExplorer(QString address) {
 void Settings::openTxInExplorer(QString txid) {
     QString url;
     if (Settings::getInstance()->isTestnet()) {
-        url = "https://chain.so/tx/ZECTEST/" + txid;
+        url = "https://explorer-test.arrowchain.io/#/tx/" + txid;
     }
     else {
-        url = "https://zcha.in/transactions/" + txid;
+        url = "https://explorer.arrowchain.io/#/tx/" + txid;
     }
     QDesktopServices::openUrl(QUrl(url));
 }
