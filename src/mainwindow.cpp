@@ -423,7 +423,7 @@ void MainWindow::setupSettingsModal() {
         settings.chkFetchPrices->setChecked(Settings::getInstance()->getAllowFetchPrices());
 
         // List of default servers
-        settings.cmbServer->addItem("https://18.204.209.173:443");
+        settings.cmbServer->addItem("https://wallet.arrowchain.net:443");
         settings.cmbServer->addItem("https://j4ys0n.com:4433");
 
         // Load current values into the dialog
