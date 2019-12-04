@@ -154,7 +154,7 @@ void Settings::saveRestoreTableHeader(QTableView* table, QDialog* d, QString tab
 }
 
 QString Settings::getDefaultServer() {
-    return "https://j4ys0n.com:4433/";
+    return "https://18.204.209.173:443/";
 }
 
 void Settings::openAddressInExplorer(QString address) {

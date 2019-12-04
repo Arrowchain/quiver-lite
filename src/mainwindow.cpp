@@ -423,8 +423,8 @@ void MainWindow::setupSettingsModal() {
         settings.chkFetchPrices->setChecked(Settings::getInstance()->getAllowFetchPrices());
 
         // List of default servers
+        settings.cmbServer->addItem("https://18.204.209.173:443");
         settings.cmbServer->addItem("https://j4ys0n.com:4433");
-//        settings.cmbServer->addItem("https://lightd-main.zcashfr.io:443");
 
         // Load current values into the dialog
         auto conf = Settings::getInstance()->getSettings();
