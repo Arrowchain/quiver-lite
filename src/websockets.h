@@ -152,22 +152,17 @@ public:
         return instance;
     }
 
-    CAmount getTBalance()     { return balTransparent;  }
-    CAmount getZBalance()     { return balShielded; }
-    CAmount getTotalBalance() { return balTotal; }
+    CAmount getTotalBalance() { return balTotalARW; }
 
-    void    setBalances(CAmount transparent, CAmount shielded) {
-        balTransparent = transparent;
-        balShielded = shielded;
-        balTotal = balTransparent + balShielded;
+    void    setBalances(CAmount shielded) {
+        // ARW only uses shielded.
+        balTotalARW = shielded;
     }
 
 private:
     AppDataModel() = default;   // Private, for singleton
 
-    CAmount balTransparent;
-    CAmount balShielded;
-    CAmount balTotal;
+    CAmount balTotalARW;
 
     QString saplingAddress;
 

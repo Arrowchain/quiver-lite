@@ -40,9 +40,6 @@ public:
     CAmount                    getAvailableBalance()          { QReadLocker locker(lock); return availableBalance; }
     void                       setAvailableBalance(CAmount a) { QReadLocker locker(lock); this->availableBalance = a; }
 
-    CAmount                    getBalT()          { QReadLocker locker(lock); return balT; }
-    void                       setBalT(CAmount a) { QReadLocker locker(lock); this->balT = a; }
-
     CAmount                    getBalZ()          { QReadLocker locker(lock); return balZ; }
     void                       setBalZ(CAmount a) { QReadLocker locker(lock); this->balZ = a; }
 

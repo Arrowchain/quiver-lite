@@ -103,9 +103,6 @@ bool Settings::isSaplingActive() {
            (!isTestnet() && getBlockNumber() > 419200);
 }
 
-double Settings::getZECPrice() {
-    return zecPrice;
-}
 
 bool Settings::getCheckForUpdates() {
     return QSettings().value("options/allowcheckupdates", true).toBool();
