@@ -37,7 +37,7 @@ public:
     void refreshAddresses();    
     
     void checkForUpdate(bool silent = true);
-    void refreshZECPrice();
+    void refreshARWPrice();
     
     void executeStandardUITransaction(Tx tx); 
 
@@ -107,7 +107,8 @@ public:
 
     QString getDefaultSaplingAddress();
     QString getDefaultTAddress();   
-    
+    QByteArray async_get_the_page(const QString& url);
+
 private:
     void processInfo(const json&);
     void refreshBalances();

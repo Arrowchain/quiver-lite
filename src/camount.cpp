@@ -35,7 +35,7 @@ QString CAmount::toDecimalString() const {
 
 QString CAmount::toDecimalUSDString() const {
     double dblAmount = static_cast<double>(this->amount) / COIN;
-    double price = Settings::getInstance()->getZECPrice();
+    double price = Settings::getInstance()->getARWPrice();
 
     return "$" + QLocale(QLocale::English).toString(dblAmount*price, 'f', 2);
 }

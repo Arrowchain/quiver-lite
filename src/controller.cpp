@@ -29,7 +29,7 @@ Controller::Controller(MainWindow* main) {
     priceTimer = new QTimer(main);
     QObject::connect(priceTimer, &QTimer::timeout, [=]() {
         if (Settings::getInstance()->getAllowFetchPrices())
-            refreshZECPrice();
+            refreshARWPrice();
     });
     priceTimer->start(Settings::priceRefreshSpeed);  // Every hour
 
@@ -69,9 +69,7 @@ void Controller::setConnection(Connection* c) {
 
     processInfo(c->getInfo());
 
-    // If we're allowed to get the Zec Price, get the prices
-    if (Settings::getInstance()->getAllowFetchPrices())
-        refreshZECPrice();
+    refreshARWPrice();
 
     // If we're allowed to check for updates, check for a new release
     if (Settings::getInstance()->getCheckForUpdates())
@@ -122,13 +120,8 @@ void Controller::noConnection() {
     transactionsTableModel->replaceData(emptyTxs);
 
     // Clear balances
-    ui->balSheilded->setText("");
-    ui->balTransparent->setText("");
-    ui->balTotal->setText("");
-
-    ui->balSheilded->setToolTip("");
-    ui->balTransparent->setToolTip("");
-    ui->balTotal->setToolTip("");
+    ui->balTotalARW->setText("");
+    ui->balTotalARW->setToolTip("");
 }
 
 /// This will refresh all the balance data from zcashd
@@ -281,7 +274,8 @@ void Controller::processUnspent(const json& reply, QMap<QString, CAmount>* balan
 };
 
 void Controller::updateUIBalances() {
-    CAmount balT = getModel()->getBalT();
+    refreshARWPrice();
+
     CAmount balZ = getModel()->getBalZ();
     CAmount balVerified = getModel()->getBalVerified();
 
@@ -289,26 +283,33 @@ void Controller::updateUIBalances() {
     // here because totalPending is already negative for outgoing txns.
     balZ = balZ + getModel()->getTotalPending();
 
-    CAmount balTotal     = balT + balZ;
-    CAmount balAvailable = balT + balVerified;
+    CAmount balTotalARW     = balZ; //testing + CAmount::fromDecimalString("1000000.0");
+    CAmount balAvailable = balZ + balVerified;
 
     // Balances table
     ui->balSheilded   ->setText(balZ.toDecimalZECString());
     ui->balVerified   ->setText(balVerified.toDecimalZECString());
-    ui->balTransparent->setText(balT.toDecimalZECString());
-    ui->balTotal      ->setText(balTotal.toDecimalZECString());
-
-//    if (balT == 0) {
-        ui->balTransparent->setVisible(false);
-        ui->transparentLbl->setVisible(false);
-        ui->totalLbl->setVisible(false);
-        ui->balTotal->setVisible(false);
-//    }
+    ui->balTotalARW      ->setText(balTotalARW.toDecimalZECString());
 
     ui->balSheilded   ->setToolTip(balZ.toDecimalUSDString());
     ui->balVerified   ->setToolTip(balVerified.toDecimalUSDString());
-    ui->balTransparent->setToolTip(balT.toDecimalUSDString());
-    ui->balTotal      ->setToolTip(balTotal.toDecimalUSDString());
+
+    const ARWPriceInfo& api = Settings::getInstance()->getARWPriceInfo();
+
+    if (api.arwusd() != 0.0) {
+        QString sourceTooltip("");
+        QTextStream(&sourceTooltip) << "BTC(Coinmarketcap): " << api.btcusd
+                                    << " ARW price: (Safetrade): " << api.arwbtc
+                                    << " == " << api.arwusd();
+
+        ui->balTotalUSD      ->setToolTip(sourceTooltip);
+        ui->balTotalUSD      ->setText(balTotalARW.toDecimalUSDString());
+    } else {
+        QString unavailable("Unavailable");
+        QString tt("Either CoinMarketCap or Safetrade is unreachable, ARWUSD unavailable.");
+        ui->balTotalUSD      ->setToolTip(tt);
+        ui->balTotalUSD      ->setText(unavailable);
+    }
 
     // Send tab
     ui->txtAvailableZEC->setText(balAvailable.toDecimalZECString());
@@ -321,19 +322,17 @@ void Controller::refreshBalances() {
 
     // 1. Get the Balances
     zrpc->fetchBalance([=] (json reply) {    
-        CAmount balT        = CAmount::fromqint64(reply["tbalance"].get<json::number_unsigned_t>());
         CAmount balZ        = CAmount::fromqint64(reply["zbalance"].get<json::number_unsigned_t>());
         CAmount balVerified = CAmount::fromqint64(reply["verified_zbalance"].get<json::number_unsigned_t>());
         
-        model->setBalT(balT);
         model->setBalZ(balZ);
         model->setBalVerified(balVerified);
 
         // This is for the websockets
-        AppDataModel::getInstance()->setBalances(balT, balZ);
+        AppDataModel::getInstance()->setBalances(balZ);
         
         // This is for the datamodel
-        CAmount balAvailable = balT + balVerified;
+        CAmount balAvailable = balZ + balVerified;
         model->setAvailableBalance(balAvailable);
 
         updateUIBalances();
@@ -619,60 +618,93 @@ void Controller::checkForUpdate(bool silent) {
     });
 }
 
-// Get the ZEC->USD price from coinmarketcap using their API
-void Controller::refreshZECPrice() {
-    if (!zrpc->haveConnection()) 
-        return noConnection();
+// if the site is not available, fails quickly -- i dont understand why bother with the async crap.
+// todo: promote this to a common header for broader use
+static QByteArray sync_get_the_page_already(const QString& url)
+{
+    // i love how QT manages to make literally everything take 100x as much effort as necessary.
+    // can we please use python instead?
+    QNetworkAccessManager NAManager;
+    //QUrl url ("http://www.google.com");
+    QNetworkRequest request(url);
+    QNetworkReply *reply = NAManager.get(request);
+    QEventLoop eventLoop;
+    QObject::connect(reply, SIGNAL(finished()), &eventLoop, SLOT(quit()));
+    eventLoop.exec();
+    QByteArray raw = reply->readAll();
+    // json likes it raw. very well, precious.
+    //QString response = QTextCodec::codecForMib(106)->toUnicode(raw);
+    return raw;
+}
 
-    QUrl cmcURL("https://api.coinmarketcap.com/v1/ticker/");
 
-    QNetworkRequest req;
-    req.setUrl(cmcURL);
-    
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this->main);
-    QNetworkReply *reply = manager->get(req);
+void Controller::refreshARWPrice()
+{
+    //overall algo:
+    // get last price for:
+    // safetrade ARWBTC
+    // cmc BTCUSD
+    // compute ARWUSD
+    // todo: as we have more exchanges, move to a config driven model
+    // where we have several default exchanges and users can select which ones they
+    // want to use for their pricing data (aids early arbitrage/sanity checks prices)
+    // then remove later and just use CMC once pricing is reliably low spread.
 
-    QObject::connect(reply, &QNetworkReply::finished, [=] {
-        reply->deleteLater();
-        manager->deleteLater();
+    QString cmcURL("https://api.coinmarketcap.com/v1/ticker/");
+    QString safetradeURL("https://safe.trade/api/v2/peatio/public/markets/tickers");
 
-        try {
-            if (reply->error() != QNetworkReply::NoError) {
-                auto parsed = json::parse(reply->readAll(), nullptr, false);
-                if (!parsed.is_discarded() && !parsed["error"]["message"].is_null()) {
-                    qDebug() << QString::fromStdString(parsed["error"]["message"]);    
-                } else {
-                    qDebug() << reply->errorString();
-                }
-                Settings::getInstance()->setZECPrice(0);
-                return;
-            } 
+    ARWPriceInfo api; api.e = Exchange::SAFETRADE;
 
-            auto all = reply->readAll();
-            
-            auto parsed = json::parse(all, nullptr, false);
-            if (parsed.is_discarded()) {
-                Settings::getInstance()->setZECPrice(0);
-                return;
+    QByteArray cmc;
+    QByteArray safetrade;
+
+    try {
+        cmc = sync_get_the_page_already(cmcURL);
+        safetrade = sync_get_the_page_already(safetradeURL);
+    } catch(...) {
+        QString err("ERROR: unable to reach either coinmarketcap or safetrade, pricing info will be missing till success.");
+        return;
+    }
+
+    try {
+
+        auto parsedCMC = json::parse(cmc, nullptr, false);
+        auto parsedSafetrade = json::parse(safetrade, nullptr, false);
+
+        auto cmc_coin_array = parsedCMC.get<json::array_t>();
+
+        for(auto coin : cmc_coin_array) {
+            auto sym = coin["symbol"].get<json::string_t>();
+            if (sym == "BTC") {
+                auto usd_as_str = coin["price_usd"].get<json::string_t>();
+                api.btcusd = std::stod(usd_as_str);
+                break;// for
             }
-
-            for (const json& item : parsed.get<json::array_t>()) {
-                if (item["symbol"].get<json::string_t>() == Settings::getTokenName().toStdString()) {
-                    QString price = QString::fromStdString(item["price_usd"].get<json::string_t>());
-                    qDebug() << Settings::getTokenName() << " Price=" << price;
-                    Settings::getInstance()->setZECPrice(price.toDouble());
-
-                    return;
-                }
-            }
-        } catch (...) {
-            // If anything at all goes wrong, just set the price to 0 and move on.
-            qDebug() << QString("Caught something nasty");
         }
 
-        // If nothing, then set the price to 0;
-        Settings::getInstance()->setZECPrice(0);
-    });
+        auto st_tick = parsedSafetrade["arwbtc"]["ticker"];
+        auto st_vol = st_tick["volume"].get<json::string_t>();
+        auto st_avp = st_tick["avg_price"].get<json::string_t>();
+        auto st_pcp = st_tick["price_change_percent"].get<json::string_t>();
+
+        api.arwbtc = std::stod(st_avp);
+        api.volume = std::stod(st_vol);
+        api.price_change_percent = std::stod(st_pcp);
+
+        main->logger->write(QString("refreshARWPrice pulled: ") % api.to_string());
+    } catch (...) {
+        QString err("ERROR: had trouble parsing coinmarketcap (for btcusd) and/or safettrade (for arwbtc).  HTTP responses follow.");
+        main->logger->write(err);
+        main->logger->write(cmc);
+        main->logger->write(safetrade);
+        return;
+    }
+
+    // will zero out the price info for safetrade if we fail.
+    // refactor this a bit when we get moar exchanges.
+    // maybe roundrobin pull every couple seconds from whatever N exchanges
+    // are of interest to the user.
+    Settings::getInstance()->setARWPriceInfo(api);
 }
 
 void Controller::shutdownZcashd() {

@@ -760,7 +760,8 @@ void AppDataServer::processGetInfo(QJsonObject jobj, MainWindow* mainWindow, std
         {"maxspendable", maxSpendable.toDecimalDouble()},
         {"maxzspendable", maxZSpendable.toDecimalDouble()},
         {"tokenName", Settings::getTokenName()},
-        {"zecprice", Settings::getInstance()->getZECPrice()},
+        //for now dont want to change this contract. do we want to change to arwprice?
+        {"zecprice", Settings::getInstance()->getARWPrice()},
         {"serverversion", QString(APP_VERSION)}
     }).toJson();
     pClient->sendTextMessage(encryptOutgoing(r));

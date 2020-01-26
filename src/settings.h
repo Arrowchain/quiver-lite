@@ -22,6 +22,41 @@ struct PaymentURI {
     QString error;
 };
 
+
+// exchanges ARW trades on that we may display in the UI
+enum Exchange {
+    INVALID = -1,
+    SAFETRADE = 0,
+    NUM
+};
+
+// everything to know about ARW for a given exchange
+class ARWPriceInfo {
+public:
+    Exchange e;
+    double btcusd;
+    double arwbtc;
+    double volume;
+    double price_change_percent;
+
+    double arwusd () const {
+        if (e != Exchange::INVALID && btcusd != 0.0) { return arwbtc * btcusd; }
+        else return 0.0;
+    }
+    QString to_string() {
+        QString ret("");
+        QTextStream(&ret) << e << ":btcusd:" << btcusd
+            << ":arwbtc:" << arwbtc
+            << ":arwusd:" << arwusd()
+            << ":volume:" << volume
+            << ":price_change_percent:" << price_change_percent;
+        return ret;
+    }
+
+    ARWPriceInfo() { e = Exchange::INVALID; btcusd = 0.0; arwbtc = 0.0; volume = 0.0; price_change_percent = 0.0; }
+};
+
+
 class Settings
 {
 public:
@@ -65,8 +100,12 @@ public:
 
     bool    isSaplingActive();
 
-    void    setZECPrice(double p) { zecPrice = p; }
-    double  getZECPrice();
+    void setARWPriceInfo(ARWPriceInfo& api) { safetradePriceInfo = api; } // copy by value
+    const ARWPriceInfo& getARWPriceInfo() { return safetradePriceInfo; }
+
+    // for now - refactor as more exchanges. may want cmc valuation or some other metric
+    // to be default, tbd -- i think user customizability might be a good option to add.
+    double getARWPrice() { return safetradePriceInfo.arwusd(); }
 
     // Static stuff
     static const QString txidStatusMessage;
@@ -118,6 +157,8 @@ private:
     bool    _headless         = false;
     
     double  zecPrice          = 0.0;
+    // get fancier once we have moar exchanges.. a map?
+    ARWPriceInfo safetradePriceInfo;
 };
 
 
